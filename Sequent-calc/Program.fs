@@ -50,3 +50,35 @@ let toNormalSequentForm seq =
          let normalAntecedent = splitVar a
          let normalSuccedent = splitVar b
          NormalSequentForm (List.map toVar (fst normalAntecedent), snd normalAntecedent,List.map toVar (fst normalSuccedent), snd normalSuccedent)
+
+
+(*несмотря на то, что нам очень удобно хранить секвекцию в нормальной форме, на вход функции, которая применяет правила и строит проверяющее дерево мы подаем
+секвенцию в обычной форме, поэтому нужно обратное преобразование
+*)
+let toSequent x = 
+    match x with
+    |NormalSequentForm(a,b,c,d) -> Sequent((List.map (fun x-> FVar x) a)@b, (List.map (fun x -> FVar x) c)@d)
+
+//пересечение 2-х списков. Из стандартного нашел только какой-то изврат с set
+let rec intersect a b =
+    match a with
+    |h::t -> match b with
+             |h2::t2 -> 
+                 if h = h2 then h::(intersect t t2)
+                 else if h > h2 then intersect t b else intersect a t2
+             |[] -> []
+    |[] -> []
+(*
+  теперь можно и подумать, как применять наши правила, 
+  Главная идея: 
+  очевидно, что если мы доведем до "аксиомы" - это когда в сукцеденте и антицеденте содержатся только переменные 
+  и хотя бы одна переменная совпадает, то эта аксиома выводима 
+*)
+let applyRule seq = 
+    let normSeq = toNormalSequentForm seq
+    match normSeq with 
+        |NormalSequentForm(a,b,c,d) ->
+            if (intersect a c <> []) then Leaf(seq, Derivable)
+            else if b <> [] then rule b.Head Antecedent (NormalSequentForm (a, b.Tail, c, d) |> toSequent)
+            else if d <> [] then rule d.Head Succedent  (NormalSequentForm (a, b, c, d.Tail) |> toSequent)
+            else Leaf(seq, NotDerivable)
