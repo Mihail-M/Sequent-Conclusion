@@ -76,9 +76,11 @@ let rec intersect a b =
 *)
 let applyRule seq = 
     let normSeq = toNormalSequentForm seq
-    match normSeq with 
-        |NormalSequentForm(a,b,c,d) ->
+    let applyRuleWithNormal (NormalSequentForm(a, b, c, d)) = 
             if (intersect a c <> []) then Leaf(seq, Derivable)
             else if b <> [] then rule b.Head Antecedent (NormalSequentForm (a, b.Tail, c, d) |> toSequent)
             else if d <> [] then rule d.Head Succedent  (NormalSequentForm (a, b, c, d.Tail) |> toSequent)
             else Leaf(seq, NotDerivable)
+    applyRuleWithNormal normSeq
+
+//
