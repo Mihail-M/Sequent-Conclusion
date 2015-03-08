@@ -13,6 +13,12 @@ type ProofTree = Tree of Sequent*(Sequent*Label)
 //для инициализации 
 let SeqWithLabel x y = (Sequent (x, y), Unknown)
 
+let rec FoldTree f g h x = 
+    match x with
+    |Leaf(a) -> f a
+    |Bend(a, b) -> g a (FoldTree f g h b)
+    |Branch(a, b, c)-> h a (FoldTree f g h b) (FoldTree f g h c)
+
 //опишем правила вывода 
 let rule formula side seq = 
     match formula, side, seq with
@@ -35,7 +41,7 @@ type NormalSequentForm =  NormalSequentForm of Var List * Formula List * Var Lis
 let toVar x =  match x with
                     |FVar(a) -> a 
                     |Op(_, a, _) -> V("-1") // заглушка
-     
+
 let isVar x =
     match x with
     |FVar(_) -> true
@@ -55,9 +61,7 @@ let toNormalSequentForm seq =
 (*несмотря на то, что нам очень удобно хранить секвекцию в нормальной форме, на вход функции, которая применяет правила и строит проверяющее дерево мы подаем
 секвенцию в обычной форме, поэтому нужно обратное преобразование
 *)
-let toSequent x = 
-    match x with
-    |NormalSequentForm(a,b,c,d) -> Sequent((List.map (fun x-> FVar x) a)@b, (List.map (fun x -> FVar x) c)@d)
+let toSequent (NormalSequentForm(a,b,c,d)) = Sequent((List.map (fun x-> FVar x) a)@b, (List.map (fun x -> FVar x) c)@d)
 
 //пересечение 2-х списков. Из стандартного нашел только какой-то изврат с set
 let rec intersect a b =
@@ -75,12 +79,47 @@ let rec intersect a b =
   и хотя бы одна переменная совпадает, то эта аксиома выводима 
 *)
 let applyRule seq = 
-    let normSeq = toNormalSequentForm seq
+    let normSeq = toNormalSequentForm  (fst seq)
+
     let applyRuleWithNormal (NormalSequentForm(a, b, c, d)) = 
-            if (intersect a c <> []) then Leaf(seq, Derivable)
+            if (intersect a c <> []) then Leaf(fst seq, Derivable)
             else if b <> [] then rule b.Head Antecedent (NormalSequentForm (a, b.Tail, c, d) |> toSequent)
             else if d <> [] then rule d.Head Succedent  (NormalSequentForm (a, b, c, d.Tail) |> toSequent)
-            else Leaf(seq, NotDerivable)
+            else Leaf(fst seq, NotDerivable)
+
     applyRuleWithNormal normSeq
 
-//
+(*применение правил начинается с исходного секвента, а затем применяется к каждому Leaf, выведенному из исходного*)
+//будем применять правила к секвенциям с метками
+let rec (>>=) x f = 
+        match x with 
+            | Leaf (b) -> f b 
+            | Bend (a, b) -> Bend(a, b >>= f)
+            | Branch(a, b, c) -> Branch(a, b >>= f, c >>= f)
+
+let rec unfold f x = 
+    match (f x) with
+    | Leaf a -> Leaf a
+    | b ->  b >>= (unfold f)  
+    
+let applying (Sequent(A,B)) = SeqWithLabel A B |> (unfold applyRule)
+
+let foldProofTree x = FoldTree (fun x->x) (fun x y -> y) (fun x y z -> 
+                                                            match y with  
+                                                            |(a, NotDerivable) -> (a, NotDerivable)
+                                                            |_-> match z with
+                                                                 |(b, NotDerivable) -> (b, NotDerivable)
+                                                                 |c -> c
+                                                       ) x
+
+let check seq = 
+    match (foldProofTree (applying seq)) with 
+    |(_, Derivable) -> true
+    |_ -> false
+
+let toFVar x = FVar (V x)
+let seq1 = Sequent([FVar (V "B")],[FVar( V "A")])
+let seq2 = Sequent([Op (And, (toFVar "B"), (toFVar "A" ))],[toFVar("A")])
+(check seq2) |> printfn "%A"
+let seq3 = Sequent([toFVar("A")],[Op (And, (toFVar "B"), (toFVar "A" ))])
+(check seq3) |> printfn "%A"

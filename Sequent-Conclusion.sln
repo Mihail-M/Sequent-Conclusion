@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sequent-calc", "Sequent-calc\Sequent-calc.fsproj", "{B5E8B03E-AD78-4AE2-854F-B2E4F0448004}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sequent-Conclusion", "Sequent-Conclusion\Sequent-Conclusion.fsproj", "{B5E8B03E-AD78-4AE2-854F-B2E4F0448004}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
