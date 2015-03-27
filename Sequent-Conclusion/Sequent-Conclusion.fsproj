@@ -47,6 +47,9 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Declarations.fs" />
+    <Compile Include="SequentProverHelper.fs" />
+    <Compile Include="SequentPrintHelper.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>
