@@ -36,7 +36,7 @@
                             else if h > h2 then intersect t b else intersect a t2
                         |[] -> []
             |[] -> []
-
+            
         let rec (>>=) x f = 
                 match x with 
                     | Leaf (b) -> f b 

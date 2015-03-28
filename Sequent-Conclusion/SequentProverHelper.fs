@@ -66,7 +66,7 @@ open SequentHelper.Declarations
             let normSeq = toNormalSequentForm  (fst seq)
 
             let applyRuleWithNormal (NormalSequentForm(a, b, c, d)) = 
-                    if (intersect a c <> [] ) then Leaf(fst seq, Derivable)
+                    if (Set.intersect (Set.ofList a) (Set.ofList c) <> Set.ofList []) then Leaf(fst seq, Derivable)
                     else if b <> [] then rule b.Head Antecedent (NormalSequentForm (a, b.Tail, c, d) |> toSequent)
                     else if d <> [] then rule d.Head Succedent  (NormalSequentForm (a, b, c, d.Tail) |> toSequent)
                     else Leaf(fst seq, NotDerivable)
